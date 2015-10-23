@@ -32,12 +32,14 @@ import com.owncloud.android.R;
 import com.owncloud.android.lib.common.operations.RemoteOperation;
 import com.owncloud.android.lib.common.operations.RemoteOperationResult;
 import com.owncloud.android.lib.common.utils.Log_OC;
+import com.owncloud.android.operations.CreateShareWithShareeOperation;
 import com.owncloud.android.operations.GetSharesForFileOperation;
 import com.owncloud.android.lib.resources.shares.ShareType;
 import com.owncloud.android.operations.UnshareOperation;
 import com.owncloud.android.providers.UsersAndGroupsSearchProvider;
 import com.owncloud.android.ui.fragment.SearchFragment;
 import com.owncloud.android.ui.fragment.ShareFileFragment;
+import com.owncloud.android.utils.ErrorMessageAdapter;
 
 /**
  * Activity for sharing files
@@ -120,15 +122,10 @@ public class ShareActivity extends FileActivity
     }
 
     private void doShareWith(String shareeName, boolean isGroup) {
-        if (isGroup) {
-            Toast.makeText(this, "You want to SHARE with GROUP [" + shareeName + "]", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "You want to SHARE with USER [" + shareeName + "]", Toast.LENGTH_SHORT).show();
-        }
         getFileOperationsHelper().shareFileWithSharee(
                 getFile(),
                 shareeName,
-                (isGroup ? ShareType.GROUP : ShareType.USER )
+                (isGroup ? ShareType.GROUP : ShareType.USER)
         );
     }
 
@@ -174,10 +171,21 @@ public class ShareActivity extends FileActivity
     @Override
     public void onRemoteOperationFinish(RemoteOperation operation, RemoteOperationResult result) {
         super.onRemoteOperationFinish(operation, result);
-        if (operation instanceof UnshareOperation) {
-            if (mShareFileFragment != null){
-                mShareFileFragment.refreshUsersOrGroupsListFromDB();
+        if (operation instanceof UnshareOperation ||
+                operation instanceof CreateShareWithShareeOperation) {
+
+            if (result.isSuccess()) {
+                if (mShareFileFragment != null) {
+                    mShareFileFragment.refreshUsersOrGroupsListFromDB();
+                }
+            } else {
+                Toast.makeText(
+                        this,
+                        ErrorMessageAdapter.getErrorCauseMessage(result, operation, getResources()),
+                        Toast.LENGTH_LONG
+                ).show();
             }
+
         } else if (operation instanceof GetSharesForFileOperation) {
             onGetSharesForFileOperationFinish((GetSharesForFileOperation) operation, result);
         }
