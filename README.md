@@ -1,4 +1,4 @@
-#This is the Android client for [ownCloud][0]
+#This is the Android1 client for [ownCloud][0]
 
 The app performs file synchronization with an ownCloud server. Other ownCloud features may be added in the future, but they are not a priority right now.
 
